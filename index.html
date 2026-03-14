@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NOAA Solar Calculator - Modernized</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body data-theme="dark">
+
+    <div class="app-container">
+        <div class="glass-panel sidebar">
+            <div class="header">
+                <div class="header-top">
+                    <div class="logo-circle"><i class="fas fa-sun"></i></div>
+                    <button id="theme-toggle" class="icon-btn" title="Toggle Theme"><i class="fas fa-sun"></i></button>
+                </div>
+                <h1>Solar Calculator</h1>
+                <p>Real-time Sun Position & Phases</p>
+            </div>
+
+            <div class="scroll-content">
+                <div class="input-section">
+                    <h3><i class="fas fa-map-marker-alt"></i> Location</h3>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label>Latitude</label>
+                            <input type="number" id="lat-input" value="39.833" step="0.001" />
+                        </div>
+                        <div class="input-group">
+                            <label>Longitude</label>
+                            <input type="number" id="lng-input" value="-98.583" step="0.001" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-section">
+                    <h3><i class="fas fa-calendar-alt"></i> Date & Time</h3>
+                    <div class="input-row">
+                        <div class="input-group date-group">
+                            <label>Date</label>
+                            <input type="date" id="date-input" />
+                        </div>
+                    </div>
+                    <div class="input-row time-row">
+                        <div class="input-group">
+                            <label>Local Time (24h)</label>
+                            <div class="time-inputs">
+                                <input type="number" id="hour-input" value="12" min="0" max="23" />
+                                <span>:</span>
+                                <input type="number" id="min-input" value="0" min="0" max="59" />
+                                <span>:</span>
+                                <input type="number" id="sec-input" value="0" min="0" max="59" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label>UTC Offset (Hours)</label>
+                            <input type="number" id="tz-input" value="-6" step="0.5" />
+                        </div>
+                    </div>
+                    <div class="buttons-row mt-2">
+                        <button class="btn btn-secondary" id="current-time-btn">
+                            <i class="fas fa-clock"></i> Set to Now
+                        </button>
+                        <button class="btn btn-primary" id="realtime-btn" title="Animate and track time in real-time">
+                            <i class="fas fa-play"></i> Real-Time Tracker
+                        </button>
+                    </div>
+                </div>
+
+                <div class="results-section">
+                    <h3><i class="fas fa-chart-pie"></i> Solar Data</h3>
+
+                    <div class="result-cards">
+
+                        <div class="result-card">
+                            <div class="card-icon info-icon"><i class="fas fa-stopwatch"></i></div>
+                            <div class="card-info">
+                                <span class="label">Eq. of Time</span>
+                                <span class="value" id="eq-time-val">--</span>
+                                <span class="unit">minutes</span>
+                            </div>
+                        </div>
+
+                        <div class="result-card">
+                            <div class="card-icon info-icon"><i class="fas fa-angle-double-down"></i></div>
+                            <div class="card-info">
+                                <span class="label">Solar Declination</span>
+                                <span class="value" id="solar-dec-val">--</span>
+                                <span class="unit">degrees</span>
+                            </div>
+                        </div>
+
+                        <div class="result-card">
+                            <div class="card-icon info-icon"><i class="fas fa-sun"></i></div>
+                            <div class="card-info">
+                                <span class="label">Solar Noon</span>
+                                <span class="value" id="solar-noon-val">--</span>
+                                <span class="unit">hh:mm:ss</span>
+                            </div>
+                        </div>
+
+                        <div class="result-card">
+                            <div class="card-icon sunrise"><i class="fas fa-long-arrow-alt-up"></i></div>
+                            <div class="card-info">
+                                <span class="label">Apparent Sunrise</span>
+                                <span class="value" id="sunrise-val">--</span>
+                                <span class="unit">hh:mm</span>
+                            </div>
+                        </div>
+
+                        <div class="result-card">
+                            <div class="card-icon sunset"><i class="fas fa-long-arrow-alt-down"></i></div>
+                            <div class="card-info">
+                                <span class="label">Apparent Sunset</span>
+                                <span class="value" id="sunset-val">--</span>
+                                <span class="unit">hh:mm</span>
+                            </div>
+                        </div>
+
+                        <div class="result-card highlight-card">
+                            <div class="card-icon"><i class="fas fa-compass"></i></div>
+                            <div class="card-info">
+                                <span class="label">Azimuth / Elevation</span>
+                                <span class="value" id="az-el-val">-- / --</span>
+                                <span class="unit">degrees</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="map-container">
+            <div id="map"></div>
+
+            <div class="map-overlay">
+                <div class="overlay-stat" id="overlay-container">
+                    <i class="fas fa-sun map-sun-icon"></i>
+                    <span class="overlay-label">Selected Location</span>
+                    <strong id="overlay-latlng" class="overlay-value">39.833, -98.583</strong>
+                </div>
+            </div>
+
+            <div class="legend-overlay">
+                <div class="legend-item">
+                    <div class="line sun-line"></div> Sun Azimuth
+                </div>
+                <div class="legend-item">
+                    <div class="line sr-line"></div> Sunrise Azimuth
+                </div>
+                <div class="legend-item">
+                    <div class="line ss-line"></div> Sunset Azimuth
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/suncalc/1.9.0/suncalc.min.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
